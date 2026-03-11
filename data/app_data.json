@@ -1,0 +1,16 @@
+{
+  "users": {
+    "a3de8095-4595-4fb8-9a21-be6a28a787fa": {
+      "id": "a3de8095-4595-4fb8-9a21-be6a28a787fa",
+      "name": "Marin",
+      "city": "Chisinau",
+      "preferences": {}
+    },
+    "9d0eb7f0-6cc4-44da-b7e6-84cf9e2d9c33": {
+      "id": "9d0eb7f0-6cc4-44da-b7e6-84cf9e2d9c33",
+      "name": "Marin",
+      "city": "Chisinau",
+      "preferences": {}
+    }
+  }
+}
