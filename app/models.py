@@ -28,5 +28,13 @@ class AgentRequest(BaseModel):
     message: str
 
 
+class PlaceResult(BaseModel):
+    name: str
+    url: str
+    description: str
+    image_url: str = ""
+
+
 class AgentResponse(BaseModel):
     reply: str
+    places: list[PlaceResult] = []

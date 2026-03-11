@@ -30,6 +30,22 @@ def search_places(city: str, query: str) -> list[dict]:
             "name": title_tag.get_text(strip=True),
             "url": url_tag.get_text(strip=True) if url_tag else "",
             "description": snippet_tag.get_text(strip=True) if snippet_tag else "",
+            "image_url": "",
         })
 
     return places
+
+
+def fetch_image_url(url: str) -> str:
+    try:
+        full_url = url if url.startswith("http") else f"https://{url}"
+        resp = requests.get(full_url, headers=HEADERS, timeout=4)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        tag = soup.select_one('meta[property="og:image"]')
+        if tag:
+            content = tag.get("content", "")
+            if content:
+                return content
+    except Exception:
+        pass
+    return ""

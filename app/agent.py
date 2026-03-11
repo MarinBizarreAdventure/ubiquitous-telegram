@@ -3,7 +3,7 @@ import logging
 
 import anthropic
 
-from app.scraper import search_places
+from app.scraper import fetch_image_url, search_places
 from app.weather import get_tomorrow_weather
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,13 @@ def _blocks_to_dicts(blocks: list) -> list[dict]:
     return result
 
 
-def run_agent(user_name: str, user_city: str, message: str, api_key: str, open_meteo_base_url: str) -> str:
+def run_agent(
+    user_name: str,
+    user_city: str,
+    message: str,
+    api_key: str,
+    open_meteo_base_url: str,
+) -> tuple[str, list[dict]]:
     client = anthropic.Anthropic(api_key=api_key)
 
     messages = [
@@ -65,7 +71,10 @@ def run_agent(user_name: str, user_city: str, message: str, api_key: str, open_m
 
     logger.info("Agent started for user=%s city=%s", user_name, user_city)
 
+    all_places: list[dict] = []
+    reply_text = ""
     iteration = 0
+
     while True:
         iteration += 1
         logger.info("[iter %d] Calling Claude...", iteration)
@@ -85,9 +94,9 @@ def run_agent(user_name: str, user_city: str, message: str, api_key: str, open_m
         if response.stop_reason == "end_turn":
             for block in response.content:
                 if hasattr(block, "text"):
-                    logger.info("Agent finished. Response length=%d chars", len(block.text))
-                    return block.text
-            return ""
+                    reply_text = block.text
+                    logger.info("Agent finished. Response length=%d chars", len(reply_text))
+            break
 
         if response.stop_reason == "tool_use":
             tool_results = []
@@ -109,6 +118,9 @@ def run_agent(user_name: str, user_city: str, message: str, api_key: str, open_m
                     try:
                         result = search_places(block.input["city"], block.input["query"])
                         logger.info("[iter %d] Scraper returned %d results", iteration, len(result))
+                        for place in result:
+                            if not any(p["name"] == place["name"] for p in all_places):
+                                all_places.append(place)
                     except Exception as e:
                         logger.error("[iter %d] Scraper error: %s", iteration, e)
                         result = {"error": str(e)}
@@ -123,3 +135,9 @@ def run_agent(user_name: str, user_city: str, message: str, api_key: str, open_m
                 })
 
             messages.append({"role": "user", "content": tool_results})
+
+    logger.info("Fetching images for %d places", len(all_places))
+    for place in all_places:
+        place["image_url"] = fetch_image_url(place["url"])
+
+    return reply_text, all_places
