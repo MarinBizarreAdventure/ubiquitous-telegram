@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+node_modules/
+.next/
+frontend_claude/node_modules/
+frontend_claude/.next/
+vercel_front_end/node_modules/
+vercel_front_end/.next/
+data/
