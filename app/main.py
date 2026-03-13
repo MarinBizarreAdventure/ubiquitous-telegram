@@ -11,10 +11,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 from app.agent import run_agent
 from app.config import settings
 from app.models import AgentRequest, AgentResponse, CreateUserRequest, PlaceResult, User, UserResponse
-from app.storage import UserStorage
+from app.storage import create_storage
 
 app = FastAPI(title="City Guide", version="1.0.0")
-storage = UserStorage(settings.data_dir)
+storage = create_storage(settings.database_url, settings.data_dir)
 
 app.add_middleware(
     CORSMiddleware,

@@ -4,7 +4,7 @@ from pathlib import Path
 from app.models import User
 
 
-class UserStorage:
+class JsonUserStorage:
     def __init__(self, data_dir: str) -> None:
         self._path = Path(data_dir) / "app_data.json"
         self._path.parent.mkdir(parents=True, exist_ok=True)
@@ -35,3 +35,38 @@ class UserStorage:
         }
         self._write(data)
         return user
+
+
+class PostgresUserStorage:
+    def get(self, user_id: str) -> User | None:
+        from app.database import get_session
+        from app.db_models import UserRow
+
+        with get_session() as session:
+            row = session.get(UserRow, user_id)
+            if row is None:
+                return None
+            return User(id=row.id, name=row.name, city=row.city, preferences=row.preferences or {})
+
+    def save(self, user: User) -> User:
+        from app.database import get_session
+        from app.db_models import UserRow
+
+        with get_session() as session:
+            existing = session.get(UserRow, user.id)
+            if existing:
+                existing.name = user.name
+                existing.city = user.city
+                existing.preferences = user.preferences
+            else:
+                session.add(UserRow(id=user.id, name=user.name, city=user.city, preferences=user.preferences))
+            session.commit()
+        return user
+
+
+def create_storage(database_url: str | None, data_dir: str) -> JsonUserStorage | PostgresUserStorage:
+    if database_url:
+        from app.database import init_db
+        init_db(database_url)
+        return PostgresUserStorage()
+    return JsonUserStorage(data_dir)

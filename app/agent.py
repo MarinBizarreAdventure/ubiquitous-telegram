@@ -80,7 +80,7 @@ def run_agent(
         logger.info("[iter %d] Calling Claude...", iteration)
 
         response = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-sonnet-4-20250514",
             max_tokens=1024,
             system=SYSTEM_PROMPT,
             tools=TOOLS,
@@ -135,6 +135,12 @@ def run_agent(
                 })
 
             messages.append({"role": "user", "content": tool_results})
+        else:
+            logger.warning("[iter %d] Unexpected stop_reason=%s, breaking", iteration, response.stop_reason)
+            for block in response.content:
+                if hasattr(block, "text"):
+                    reply_text = block.text
+            break
 
     logger.info("Fetching images for %d places", len(all_places))
     for place in all_places:

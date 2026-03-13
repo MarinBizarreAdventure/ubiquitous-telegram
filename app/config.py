@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_host: str = "0.0.0.0"
     app_port: int = 8000
     data_dir: str = "./data"
+    database_url: str | None = None
 
 
 settings = Settings()
